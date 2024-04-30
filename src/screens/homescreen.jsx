@@ -1,52 +1,50 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
-import axios from "axios";
+import { useEffect, useState } from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
+import axios from 'axios';
 
-const API_URL = "https://gold-anemone-wig.cyclic.app/receitas/todos";
-
-export default function HomePage() {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState([]);
+export default function HomeScreen() {
+  const [meal, setMeal] = useState(null);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const fetchRecipes = async () => {
+      try {
+        const res = await axios.get("https://www.themealdb.com/api/json/v1/1/random.php");
+        setMeal(res.data.meals[0]);
+      } catch {
+        console.error('Houve algum erro: ', error);
+      }
+    };
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get(API_URL);
-      setData(response.data);
-    } catch (error) {
-      console.error("Erro ao buscar dados:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <View>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
-  const renderItem = ({ item }) => (
-    <View style={{ marginBottom: 10 }}>
-      <Text>{item.receita}</Text>
-      <Text>{item.ingredientes}</Text>
-      <Text>{item.modo_preparo}</Text>
-    </View>
-  );
+    fetchRecipes();
+  }, [])
 
   return (
-    <View>
-      <Text>Receitas</Text>
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-      />
+    <View style={styles.container}>
+      {meal ? (
+        <View style={styles.container}>
+          <Image source={{ uri: meal.strMealThumb }} style={{ width: 300, height: 300, marginBottom: 10 }} />
+          <Text>Nome: {meal.strMeal}</Text>
+          <Text>Categoria: {meal.strCategory}</Text>
+          <Text style={styles.texto}>Instruções: {meal.strInstructions}</Text>
+        </View>
+      ) : (
+        <Text>Carregando ...</Text>
+      )}
+
     </View>
-  );
+  )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: 'center',
+    textAlign: 'center',
+  },
+  texto: {
+    marginLeft: 50,
+    marginBottom: 50,
+    marginRight: 50,
+  }
+})
